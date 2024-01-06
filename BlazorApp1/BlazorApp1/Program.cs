@@ -7,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient("LocalApi", client => client.BaseAddress = new Uri("https://localhost:7229/"));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,11 +26,18 @@ else
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Counter).Assembly);
+
+
+app.MapControllers();
+
+
 
 app.Run();

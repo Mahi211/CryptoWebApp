@@ -1,0 +1,119 @@
+﻿@page "/trendy"
+@rendermode InteractiveWebAssembly
+@using BlazorApp1.Models;
+
+<PageTitle>Trending CryptoCoins</PageTitle>
+
+<h1>Trendy</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button> 
+
+
+
+@if (coins == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Change in % (24h)</th>
+                <th>Price (SEK)</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var coin in coins)
+            {
+                number++;
+                <tr>
+                    <td>@number</td>
+                    <td>@coin.Summary</td>
+                    <td>@coin.CryptoName</td>
+                    <td>@coin.PercentChange %</td>
+                    <td>@coin.Price</td>
+                    
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
+@code {
+    int number = 0;
+    int myNumber = 25; 
+    List<TCryptoCoin> coins = new List<TCryptoCoin>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate streaming rendering
+
+
+        coins = await trendingAPICall();
+    }
+
+    public class TCryptoCoin
+    {
+        public string? CryptoName { get; set; }
+        public float? Price { get; set; }
+        public string? Summary { get; set; }
+        public float? PercentChange { get; set; }
+
+    } 
+
+
+    private async Task<List<TCryptoCoin>> trendingAPICall()
+    {
+        var limit1 = 23;
+        var convert1 = "USD,SEK";
+        var endpoint1 = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/trending/gainers-losers?convert={convert1}&limit={limit1}"); // valde listings mest för test
+
+
+        // endpoint.Query = queryString.ToString();
+
+        string API_KEY1 = "63f9b42b-7067-41cf-803e-00025ed9b664"; // min egna api key har 10000 kostnadsfria calls per månad
+        var client1 = new HttpClient();
+        client1.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY1);
+        client1.DefaultRequestHeaders.Add("Accepts", "application/json");
+        var result1 = client1.GetAsync(endpoint1).Result;
+        var json1 = result1.Content.ReadAsStringAsync().Result;
+
+        var trendings = System.Text.Json.JsonSerializer.Deserialize<Trending>(json1);
+
+        List<TCryptoCoin> trendingCoin = new();
+
+        foreach (var coin in trendings.data)
+        {
+            float roundedPrice = (float)Math.Round(coin.quote.SEK.price, 6);
+            
+            trendingCoin.Add(new TCryptoCoin
+                {
+                    Price = roundedPrice,
+                    Summary = coin.symbol.ToUpper(),
+                    CryptoName = coin.name.ToUpper(),
+                    PercentChange = coin.quote.USD.percent_change_24h
+                });
+            
+            
+        }
+        // var sortedTrendingCoin = trendingCoin.OrderByDescending(coin => coin.PercentChange).ToList();
+
+        return trendingCoin;
+    }
+}

@@ -1,23 +1,24 @@
 ﻿@page "/cryptocoins"
 @attribute [StreamRendering]
+@using BlazorApp1.Models;
 
 <PageTitle>cryptocoins</PageTitle>
 
 <h1>CryptoCoins</h1>
 
 <p>
-    Top CryptoCoins in the market, @if (coins == null)
+    Top CryptoCoins in the market, @if (coins == null || coins.Count == 0)
     {
     <p><em>Loading...</em></p>
     }
     else
-        @coins[0].CryptoName
- is currently the most valued cryptocoin with a whopping value of @if (coins == null)
+        @coins.FirstOrDefault().CryptoName
+ is currently the most valued cryptocoin with a whopping value of @if (coins == null || coins.Count == 0)
     {
     <p><em>Loading...</em></p>
     }
     else
-        @coins[0].Price
+        @coins.FirstOrDefault().Price
     </p>
 
 @if (coins == null)
@@ -29,15 +30,19 @@ else
     <table class="table">
         <thead>
             <tr>
+                <th>#</th>
                 <th>Symbol</th>
                 <th>Name</th>                
                 <th>Price</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var coin in coins)
+
+            @foreach (var coin in coins.Where(x => x.Price > 50))
             {
+                number++;
                 <tr>
+                    <td>@number</td>
                     <td>@coin.Summary</td>
                     <td>@coin.CryptoName</td>                    
                     <td>@coin.Price</td>
@@ -48,156 +53,57 @@ else
 }
 
 @code {
-    
-// }
-
-// @code {
-    private CryptoCoin[]? coins;
+    int number = 0;
+    List<CryptoCoin> coins = new List<CryptoCoin>();
 
     protected override async Task OnInitializedAsync()
     {
         // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
 
-              
-        coins = Enumerable.Range(0, 5).Select(index => new CryptoCoin
-        {
-            CryptoName = cryptoAPICall(index)[1],
-            Price = cryptoAPICall(index)[0] + "$",
-            Summary = cryptoAPICall(index)[2]
-        }).ToArray();
+     
+        coins = await cryptoAPICall();
     }
 
-    private class CryptoCoin
+    public class CryptoCoin
     {
         public string? CryptoName { get; set; }
-        public string? Price { get; set; }
+        public float? Price { get; set; }
         public string? Summary { get; set; }
         // public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
     }
 
-}
 
-@code{ 
-static List<string> cryptoAPICall(int number)
+    private async Task<List<CryptoCoin>> cryptoAPICall()
     {
-    var limit = 1;
-    var convert = "USD";
-    var endpoint = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert={convert}"); // valde listings mest för test
+        var limit = 1;
+        var convert = "USD";
+        var endpoint = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert={convert}"); // valde listings mest för test
 
 
+        // endpoint.Query = queryString.ToString();
 
-    // endpoint.Query = queryString.ToString();
+        string API_KEY = "63f9b42b-7067-41cf-803e-00025ed9b664"; // min egna api key har 10000 kostnadsfria calls per månad
+        var client = new HttpClient();
+        client.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY);
+        client.DefaultRequestHeaders.Add("Accepts", "application/json");
+        var result = client.GetAsync(endpoint).Result;
+        var json = result.Content.ReadAsStringAsync().Result;
 
-    string API_KEY = "63f9b42b-7067-41cf-803e-00025ed9b664"; // min egna api key har 10000 kostnadsfria calls per månad
-    var client = new HttpClient();
-    client.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY);
-    client.DefaultRequestHeaders.Add("Accepts", "application/json");
-    var result = client.GetAsync(endpoint).Result;
-    var json = result.Content.ReadAsStringAsync().Result;
-    var listings = System.Text.Json.JsonSerializer.Deserialize<Listings>(json);
+        var listings = System.Text.Json.JsonSerializer.Deserialize<Listings>(json);
 
-    var bitcoinValueUsd = listings.data[number].quote.USD.price.ToString(); // får fram real bitcoin data i USD valuta.
-    var bitcoinValueSek = Convert.ToDecimal(bitcoinValueUsd) * 10; // får fram real bitcoin data i USD valuta.
-    var cryptoName = listings.data[number].name.ToUpper();
-    var cryptoSymbol = listings.data[number].symbol.ToUpper();
-    return new List<string>
-    {
-        bitcoinValueUsd,
-        cryptoName,
-        cryptoSymbol
-    };
+        List<CryptoCoin> cryptoCoin = new();
 
+        foreach (var coin in listings.data)
+        {
+            cryptoCoin.Add(new CryptoCoin
+                {
+                    Price = coin.quote.USD.price,
+                    Summary = coin.symbol.ToUpper(),
+                    CryptoName = coin.name.ToUpper()
+                });
+            //   var bitcoinValueSek = Convert.ToDecimal(bitcoinValueUsd) * 10; // får fram real bitcoin data i USD valuta.
+        }
 
+        return cryptoCoin;
     }
-
-public class Listings
-    {
-    public Status status { get; set; }
-    public Datum[] data { get; set; }
     }
-
-    public class Status
-    {
-    public DateTime timestamp { get; set; }
-    public int error_code { get; set; }
-    public object error_message { get; set; }
-    public int elapsed { get; set; }
-    public int credit_count { get; set; }
-    public object notice { get; set; }
-    public int total_count { get; set; }
-    }
-
-    public class Datum
-    {
-    public int id { get; set; }
-    public string name { get; set; }
-    public string symbol { get; set; }
-    public string slug { get; set; }
-    public int num_market_pairs { get; set; }
-    public DateTime date_added { get; set; }
-    public string[] tags { get; set; }
-    public long? max_supply { get; set; }
-    public float circulating_supply { get; set; }
-    public float total_supply { get; set; }
-    public bool infinite_supply { get; set; }
-    public Platform platform { get; set; }
-    public int cmc_rank { get; set; }
-    public float? self_reported_circulating_supply { get; set; }
-    public float? self_reported_market_cap { get; set; }
-    public float? tvl_ratio { get; set; }
-    public DateTime last_updated { get; set; }
-    public Quote quote { get; set; }
-    }
-
-    public class Platform
-    {
-    public int id { get; set; }
-    public string name { get; set; }
-    public string symbol { get; set; }
-    public string slug { get; set; }
-    public string token_address { get; set; }
-    }
-
-    public class Quote
-    {
-    public USD USD { get; set; }
-    public SEK SEK { get; set; }
-    }
-
-    public class USD
-    {
-    public float price { get; set; }
-    public float volume_24h { get; set; }
-    public float volume_change_24h { get; set; }
-    public float percent_change_1h { get; set; }
-    public float percent_change_24h { get; set; }
-    public float percent_change_7d { get; set; }
-    public float percent_change_30d { get; set; }
-    public float percent_change_60d { get; set; }
-    public float percent_change_90d { get; set; }
-    public float market_cap { get; set; }
-    public float market_cap_dominance { get; set; }
-    public float fully_diluted_market_cap { get; set; }
-    public float? tvl { get; set; }
-    public DateTime last_updated { get; set; }
-    }
-
-    public class SEK
-    {
-    public float price { get; set; }
-    public float volume_24h { get; set; }
-    public float volume_change_24h { get; set; }
-    public float percent_change_1h { get; set; }
-    public float percent_change_24h { get; set; }
-    public float percent_change_7d { get; set; }
-    public float percent_change_30d { get; set; }
-    public float percent_change_60d { get; set; }
-    public float percent_change_90d { get; set; }
-    public float market_cap { get; set; }
-    public float market_cap_dominance { get; set; }
-    public float fully_diluted_market_cap { get; set; }
-    public float? tvl { get; set; }
-    public DateTime last_updated { get; set; }
-    }
-}
