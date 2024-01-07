@@ -30,7 +30,7 @@ else
         </thead>
         <tbody>
 
-            @foreach (var coin in coins)
+            @foreach (var coin in coins.Where(x => x.Price > 0.0005))
             {
                 number++;
                 <tr>
@@ -101,13 +101,14 @@ else
         foreach (var coin in trendings.data)
         {
             float roundedPrice = (float)Math.Round(coin.quote.SEK.price, 6);
+            float roundedPercentChange = (float)Math.Round(coin.quote.USD.percent_change_24h, 5);
             
             trendingCoin.Add(new TCryptoCoin
                 {
                     Price = roundedPrice,
                     Summary = coin.symbol.ToUpper(),
                     CryptoName = coin.name.ToUpper(),
-                    PercentChange = coin.quote.USD.percent_change_24h
+                    PercentChange = roundedPercentChange
                 });
             
             
