@@ -1,6 +1,8 @@
 ﻿@page "/cryptocoins"
 @attribute [StreamRendering]
+@using BlazorApp1.Controller
 @using BlazorApp1.Models;
+@inject HttpClient Http
 
 <PageTitle>cryptocoins</PageTitle>
 
@@ -35,13 +37,14 @@ else
                 <th>Name</th>                
                 <th>Price (USD)</th>
                 <th>Price (SEK) </th>                
-                <th>Last Day Status </th>
+                <th>Last Day Status</th>
+                <th>Market Cap (USD)</th>
 
             </tr>
         </thead>
         <tbody>
 
-            @foreach (var coin in coins.OrderByDescending(coin => coin.Price))
+            @foreach (var coin in coins.OrderByDescending(coin => coin.MarketCap))
             {
                 number++;
                 <tr>
@@ -49,7 +52,7 @@ else
                     <td>@coin.Summary</td>
                     <td>@coin.CryptoName</td>                    
                     <td>@coin.Price</td>
-                    <td>@coin.PriceSEK</td>
+                    <td>@coin.PriceSEK</td>                   
                     <td>@if (@coin.PercentChange > 0)
                         {
                             <span style="color: green;">@coin.PercentChange %</span>
@@ -64,6 +67,7 @@ else
                         {
                             <span>@coin.PercentChange %</span>
                         }
+                    <td>$(@coin.MarketCap)B </td>
                     </td>
                 </tr>
             }
@@ -79,55 +83,10 @@ else
     {
         // Simulate asynchronous loading to demonstrate streaming rendering
 
+        string baseUrl = "https://localhost:7229/";
 
-        coins = await cryptoAPICall();
+        coins = await Http.GetFromJsonAsync<List<CryptoCoin>>($"{baseUrl}api/crypto");
     }
 
-    public class CryptoCoin
-    {
-        public string? CryptoName { get; set; }
-        public float? Price { get; set; }
-        public string? Summary { get; set; }
-        public float? PriceSEK { get; set; }
-        public float? PercentChange { get; set; }
-        // public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-    }
-
-
-    private async Task<List<CryptoCoin>> cryptoAPICall()
-    {
-        var limit = 1;
-        var convert = "USD,SEK";
-        var endpoint = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert={convert}"); // valde listings mest för test
-
-
-        // endpoint.Query = queryString.ToString();
-
-        string API_KEY = "63f9b42b-7067-41cf-803e-00025ed9b664"; // min egna api key har 10000 kostnadsfria calls per månad
-        var client = new HttpClient();
-        client.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY);
-        client.DefaultRequestHeaders.Add("Accepts", "application/json");
-        var result = client.GetAsync(endpoint).Result;
-        var json = result.Content.ReadAsStringAsync().Result;
-
-        var listings = System.Text.Json.JsonSerializer.Deserialize<Listings>(json);
-
-        List<CryptoCoin> cryptoCoin = new();
-
-        foreach (var coin in listings.data)
-        {
-            float roundedPercentChange = (float)Math.Round(coin.quote.USD.percent_change_24h, 2);
-            cryptoCoin.Add(new CryptoCoin
-                {
-                    Price = coin.quote.USD.price,
-                    Summary = coin.symbol.ToUpper(),
-                    CryptoName = coin.name.ToUpper(),
-                    PriceSEK = coin.quote.SEK.price,
-                    PercentChange = roundedPercentChange
-                });
-            //   var bitcoinValueSek = Convert.ToDecimal(bitcoinValueUsd) * 10; // får fram real bitcoin data i USD valuta.
-        }
-
-        return cryptoCoin;
-    }
+    
     }
