@@ -1,6 +1,7 @@
 ﻿@page "/trendy"
 @rendermode InteractiveWebAssembly
 @using BlazorApp1.Models;
+@inject HttpClient Http
 
 <PageTitle>Trending CryptoCoins</PageTitle>
 
@@ -58,63 +59,15 @@ else
 @code {
     int number = 0;
     int myNumber = 25; 
-    List<TCryptoCoin> coins = new List<TCryptoCoin>();
+    List<CryptoCoin> coins = new List<CryptoCoin>();
 
     protected override async Task OnInitializedAsync()
     {
         // Simulate asynchronous loading to demonstrate streaming rendering
 
+        string baseUrl = "https://localhost:7229/";
 
-        coins = await trendingAPICall();
-    }
-
-    public class TCryptoCoin
-    {
-        public string? CryptoName { get; set; }
-        public float? Price { get; set; }
-        public string? Summary { get; set; }
-        public float? PercentChange { get; set; }
-
-    } 
-
-
-    private async Task<List<TCryptoCoin>> trendingAPICall()
-    {
-        var limit1 = 23;
-        var convert1 = "USD,SEK";
-        var endpoint1 = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/trending/gainers-losers?convert={convert1}&limit={limit1}"); // valde listings mest för test
-
-
-        // endpoint.Query = queryString.ToString();
-
-        string API_KEY1 = "63f9b42b-7067-41cf-803e-00025ed9b664"; // min egna api key har 10000 kostnadsfria calls per månad
-        var client1 = new HttpClient();
-        client1.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY1);
-        client1.DefaultRequestHeaders.Add("Accepts", "application/json");
-        var result1 = client1.GetAsync(endpoint1).Result;
-        var json1 = result1.Content.ReadAsStringAsync().Result;
-
-        var trendings = System.Text.Json.JsonSerializer.Deserialize<Trending>(json1);
-
-        List<TCryptoCoin> trendingCoin = new();
-
-        foreach (var coin in trendings.data)
-        {
-            float roundedPrice = (float)Math.Round(coin.quote.SEK.price, 6);
-            float roundedPercentChange = (float)Math.Round(coin.quote.USD.percent_change_24h, 5);
-            
-            trendingCoin.Add(new TCryptoCoin
-                {
-                    Price = roundedPrice,
-                    Summary = coin.symbol.ToUpper(),
-                    CryptoName = coin.name.ToUpper(),
-                    PercentChange = roundedPercentChange
-                });
-            
-            
-        }
-        // var sortedTrendingCoin = trendingCoin.OrderByDescending(coin => coin.PercentChange).ToList();
-
-        return trendingCoin;
-    }
+        coins = await Http.GetFromJsonAsync<List<CryptoCoin>>($"{baseUrl}api/crypto/trending");
+        
+    }   
 }

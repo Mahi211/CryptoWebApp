@@ -30,7 +30,7 @@ namespace BlazorApp1.Controller
                 var result = client.GetAsync(endpoint).Result;
                 var json = result.Content.ReadAsStringAsync().Result;
 
-                var listings = System.Text.Json.JsonSerializer.Deserialize<Listings>(json);
+                var listings = JsonSerializer.Deserialize<Listings>(json);
 
                 List<CryptoCoin> cryptoCoin = new();
 
@@ -46,7 +46,8 @@ namespace BlazorApp1.Controller
                         CryptoName = coin.name.ToUpper(),
                         PriceSEK = coin.quote.SEK.price,
                         PercentChange = roundedPercentChange,
-                        MarketCap = roundedMarketCap // Converted to Billions
+                        MarketCap = roundedMarketCap,// Converted to Billions
+                        ID = coin.cmc_rank
                     });
                     //   var bitcoinValueSek = Convert.ToDecimal(bitcoinValueUsd) * 10; // får fram real bitcoin data i USD valuta.
                 }
@@ -60,13 +61,13 @@ namespace BlazorApp1.Controller
 
 
         }
-        [HttpGet("trending/{limit1}")]
-        public async Task<ActionResult<List<CryptoCoin>>> trendingAPICall(int limit1)
+        [HttpGet("trending")]
+        public async Task<ActionResult<List<CryptoCoin>>> trendingAPICall()
         {
             try
             {
                 var convert1 = "USD,SEK";
-                var endpoint1 = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/trending/gainers-losers?convert={convert1}&limit={limit1}"); // valde listings mest för test
+                var endpoint1 = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/trending/gainers-losers?convert={convert1}"); // valde listings mest för test
 
 
                 // endpoint.Query = queryString.ToString();
@@ -78,7 +79,7 @@ namespace BlazorApp1.Controller
                 var result1 = client1.GetAsync(endpoint1).Result;
                 var json1 = result1.Content.ReadAsStringAsync().Result;
 
-                var trendings = System.Text.Json.JsonSerializer.Deserialize<Trending>(json1);
+                var trendings = JsonSerializer.Deserialize<Trending>(json1);
 
                 List<CryptoCoin> trendingCoin = new();
 
@@ -97,7 +98,7 @@ namespace BlazorApp1.Controller
 
 
                 }
-                // var sortedTrendingCoin = trendingCoin.OrderByDescending(coin => coin.PercentChange).ToList();
+                // var sortedTrendingCoin = trendingCoin.OrderByDescending(coin => coin.PercentChange).ToList();    
 
                 return trendingCoin;
             }
@@ -107,5 +108,119 @@ namespace BlazorApp1.Controller
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the API");
             }
         }
+        
+        [HttpGet("{cryptoId:int}")]
+        public async Task<ActionResult<CryptoCoin>> GetCryptoById(int? cryptoId)
+        {
+            try
+            {
+                var limit = 1;
+                var convert = "USD,SEK";
+                var endpoint = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert={convert}");
+
+                string API_KEY = "63f9b42b-7067-41cf-803e-00025ed9b664";
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY);
+                client.DefaultRequestHeaders.Add("Accepts", "application/json");
+                var result = await client.GetAsync(endpoint);
+
+                if (!result.IsSuccessStatusCode)
+                {
+                    
+                    return StatusCode((int)result.StatusCode, "Error retrieving data from the API");
+                }
+
+                var json = await result.Content.ReadAsStringAsync();
+                var listings = JsonSerializer.Deserialize<Listings>(json);
+
+                
+                var selectedCoin = listings.data.FirstOrDefault(coin => coin.cmc_rank == cryptoId);
+
+                if (selectedCoin == null)
+                {
+                    
+                    return NotFound($"CryptoCoin with id '{cryptoId}' not found");
+                }
+
+                
+                float roundedPercentChange = (float)Math.Round(selectedCoin.quote.USD.percent_change_24h, 2);
+                float BmarketCap = selectedCoin.quote.USD.market_cap / 1000000000;
+                float roundedMarketCap = (float)Math.Round(BmarketCap, 3);
+
+                var cryptoCoin = new CryptoCoin
+                {
+                    Price = selectedCoin.quote.USD.price,
+                    Summary = selectedCoin.symbol.ToUpper(),
+                    CryptoName = selectedCoin.name.ToUpper(),
+                    PriceSEK = selectedCoin.quote.SEK.price,
+                    PercentChange = roundedPercentChange,
+                    MarketCap = roundedMarketCap, // Converted to Billions
+                    ID = selectedCoin.cmc_rank
+                };
+
+                return cryptoCoin;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the API");
+            }
+        }
+        [HttpGet("{cryptoName}")]
+        public async Task<ActionResult<CryptoCoin>> GetCryptoByName(string? cryptoName)
+        {
+            try
+            {
+                var limit = 1;
+                var convert = "USD,SEK";
+                var endpoint = new Uri($"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?convert={convert}");
+
+                string API_KEY = "63f9b42b-7067-41cf-803e-00025ed9b664";
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("X-CMC_PRO_API_KEY", API_KEY);
+                client.DefaultRequestHeaders.Add("Accepts", "application/json");
+                var result = await client.GetAsync(endpoint);
+
+                if (!result.IsSuccessStatusCode)
+                {
+                    
+                    return StatusCode((int)result.StatusCode, "Error retrieving data from the API");
+                }
+
+                var json = await result.Content.ReadAsStringAsync();
+                var listings = JsonSerializer.Deserialize<Listings>(json);
+
+               
+                var selectedCoin = listings.data.FirstOrDefault(coin => coin.name.ToLower() == cryptoName.ToLower());
+
+                if (selectedCoin == null)
+                {
+                    
+                    return NotFound($"CryptoCoin with name '{cryptoName}' not found");
+                }
+
+                
+                float roundedPercentChange = (float)Math.Round(selectedCoin.quote.USD.percent_change_24h, 2);
+                float BmarketCap = selectedCoin.quote.USD.market_cap / 1000000000;
+                float roundedMarketCap = (float)Math.Round(BmarketCap, 3);
+
+                var cryptoCoin = new CryptoCoin
+                {
+                    Price = selectedCoin.quote.USD.price,
+                    Summary = selectedCoin.symbol.ToUpper(),
+                    CryptoName = selectedCoin.name.ToUpper(),
+                    PriceSEK = selectedCoin.quote.SEK.price,
+                    PercentChange = roundedPercentChange,
+                    MarketCap = roundedMarketCap, // Converted to Billions
+                    ID = selectedCoin.cmc_rank
+                };
+
+                return cryptoCoin;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the API");
+            }
+        }
+
     }
 }

@@ -11,6 +11,8 @@ namespace BlazorApp1.Models
         public float? PriceSEK { get; set; }
         public float? PercentChange { get; set; }
         public float? MarketCap { get; set; }
+        
+        public int ID { get; set; }
         // public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
         
     }

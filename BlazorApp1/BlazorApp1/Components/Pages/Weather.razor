@@ -2,7 +2,9 @@
 @attribute [StreamRendering]
 @using BlazorApp1.Controller
 @using BlazorApp1.Models;
+@using Microsoft.AspNetCore.Components.Routing;
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 <PageTitle>cryptocoins</PageTitle>
 
@@ -48,9 +50,13 @@ else
             {
                 number++;
                 <tr>
-                    <td>@number</td>
+                    <td>@coin.ID</td>
                     <td>@coin.Summary</td>
-                    <td>@coin.CryptoName</td>                    
+                    <td>
+                        <a href="/cryptodetails/@coin.ID">
+                            @coin.CryptoName
+                        </a>
+                    </td>
                     <td>@coin.Price</td>
                     <td>@coin.PriceSEK</td>                   
                     <td>@if (@coin.PercentChange > 0)
@@ -87,6 +93,9 @@ else
 
         coins = await Http.GetFromJsonAsync<List<CryptoCoin>>($"{baseUrl}api/crypto");
     }
-
-    
-    }
+    void NavigateToCryptoDetails(int CryptoId)
+    {
+        Console.WriteLine($"Navigating to details page for CryptoId: {CryptoId}");
+        NavigationManager.NavigateTo($"/cryptodetails/{CryptoId}");
+    }    
+}

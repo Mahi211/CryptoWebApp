@@ -1,0 +1,27 @@
+﻿@page "/cryptodetails/{CryptoId:int}"
+@attribute [StreamRendering]
+@using BlazorApp1.Controller
+@using BlazorApp1.Models
+@inject HttpClient Http
+
+<h3>Crypto Details</h3>
+
+<p>
+    Details for Crypto Name: @coinDetails.CryptoName
+</p>
+
+
+@code {
+    CryptoCoin coinDetails = new();
+
+    [Parameter]
+    public int CryptoId { get; set; }
+ 
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        string baseUrl = "https://localhost:7229/";
+        coinDetails = await Http.GetFromJsonAsync<CryptoCoin>($"{baseUrl}api/crypto/{CryptoId}");
+    }
+}
