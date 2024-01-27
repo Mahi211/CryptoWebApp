@@ -1,7 +1,149 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<!DOCTYPE html>
+<html lang="en">
 
-<h1>Hello, world!</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoCompanion</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a; /* Dark background */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            color: #fff; /* Light text color */
+        }
 
-Welcome to your new app.
+        header {
+            background-color: #3b5998; /* Facebook blue, commonly used in crypto apps */
+            color: #fff;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 4rem 0;
+            color: #fff; /* Light text color */
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #fff; /* Light text color */
+        }
+
+        p {
+            font-size: 1.4rem;
+            color: #bbb; /* Lighter text color */
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 8px;
+            background-color: #4caf50; /* Green color often associated with success */
+            color: #fff;
+            transition: background-color 0.3s ease;
+        }
+
+            .cta-button:hover {
+                background-color: #45a049; /* Darker green on hover */
+            }
+
+        .features-section {
+            background-color: #333; /* Dark background for feature section */
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .feature {
+            margin-bottom: 2rem;
+        }
+
+        .feature-image-container {
+            max-width: 50%; /* Set a maximum width for the container */
+            margin: 0 auto; /* Center the container horizontally */
+        }
+
+        .feature-image {
+            width: 20%; /* Ensure the image fills the container */
+            height: auto;
+        }
+
+        .feature h2 {
+            font-size: 2rem;
+            margin-top: 1rem;
+            color: #4caf50; /* Green color for feature headings */
+        }
+
+        .feature p {
+            color: #bbb; /* Lighter text color */
+        }
+
+        footer {
+            background-color: #222; /* Darker background for the footer */
+            color: #fff;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        p.slogan {
+            font-size: 1.8rem;
+            font-family: 'Arial', sans-serif; /* Use a common sans-serif font for the slogan */
+            color: #bbb; /* Lighter text color */
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>CryptoCompanion</h1>
+        <p class="slogan">"Empowering Your Crypto Journey, Your Trusted Companion in the World of Digital Assets"</p>
+        <nav>
+            <!-- Add your navigation links here -->
+        </nav>
+    </header>
+
+    <div class="hero-section">
+        <h1>Welcome to Your Cryptocurrency Experience</h1>
+        <p>Explore the world of cryptocurrencies with our cutting-edge app. Get real-time updates, manage your portfolio, and stay informed.</p>
+        <a href="cryptocoins" class="cta-button">Top CryptoCoins</a>
+    </div>
+
+    <div class="features-section">
+        <div class="feature">
+            <img src="Crypto.png" alt="Feature 1" class="feature-image">
+            <h2>Real-time Updates</h2>
+            <p>Stay informed with live cryptocurrency market data and price changes.</p>
+            <a href="cryptocoins" class="cta-button">Explore</a>
+        </div>
+
+        <div class="feature">
+            <img src="transactions.jpg" alt="Feature 2" class="feature-image">
+            <h2>Secure Transactions</h2>
+            <p>Manage your portfolio and make secure transactions with ease.</p>
+        </div>
+
+        <!-- Add more feature sections as needed -->
+    </div>
+
+    <footer>
+        <p>&copy; 2024 MohamudINC. All rights reserved.</p>
+    </footer>
+
+</body>
+
+</html>
+

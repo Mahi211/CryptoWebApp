@@ -1,0 +1,42 @@
+﻿@page "/todolist"
+@using BlazorApp1.Models;
+
+<h3>To-DoList</h3>
+
+<u1>
+    
+  @foreach (var todo in todos)
+
+    {
+        <li>
+            <input @bind="todo.Title" />
+        </li>
+    }
+
+</u1>
+
+<input placeholder="Something Todo" @bind="NewTodo" />
+<button @onclick="AddTodo">Add Todo</button>
+
+@code {
+    List<TodoItem> todos = new();
+
+
+    private string? NewTodo;
+
+
+    private void AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(NewTodo))
+        {
+            todos.Add(new TodoItem { Title = NewTodo });
+            NewTodo = string.Empty;
+        }
+    }
+
+
+  
+    
+}
+
+

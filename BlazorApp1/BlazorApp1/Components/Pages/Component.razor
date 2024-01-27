@@ -1,0 +1,71 @@
+﻿@page "/biggestlosers"
+@rendermode InteractiveWebAssembly
+@using BlazorApp1.Models;
+@inject HttpClient Http
+
+<PageTitle>Biggest Losers</PageTitle>
+
+<h1>Table</h1>
+
+
+
+@if (coins == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Price (SEK)</th>
+                <th>Change in % (30d)</th>
+                <th>Highest price (30d)</th>
+                <th>Lowest price (30d)</th>
+                <th>Open price (30d)</th>
+                <th>Close price (30d)</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var coin in coins.Where(x => x.Price > 0.0005))
+            {
+                number++;
+                <tr>
+                    <td>@number</td>
+                    <td>@coin.Summary</td>
+                    <td>@coin.CryptoName</td>
+                    <td>@coin.Price</td>
+                    <td>@coin.PercentChange30days %</td>
+                    <td>@coin.High</td>
+                    <td>@coin.Low</td>
+                    <td>@coin.OpenPrice</td>
+                    <td>@coin.ClosePrice</td>
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+
+@code {
+    int number = 0;
+    int myNumber = 25;
+    List<CryptoCoin> coins = new List<CryptoCoin>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate streaming rendering
+
+        string baseUrl = "https://localhost:7229/";
+
+        coins = await Http.GetFromJsonAsync<List<CryptoCoin>>($"{baseUrl}api/crypto/performance/all");
+
+    }
+}
